@@ -20,19 +20,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        asyncLoadNews()
+
+    }
+
+    private fun asyncLoadNews(){
         GlobalScope.launch(dispatcher) {
-            loadNews()
+            val headlines = fetchRssHeadLines()
+
+            val newsCountTextView = findViewById<TextView>(R.id.newsCountTextView)
+            GlobalScope.launch(Dispatchers.Main) {
+                newsCountTextView.text = "Found ${headlines.size} News"
+            }
         }
     }
 
-    private fun loadNews(){
-        val headlines = fetchRssHeadLines()
-
-        val newsCountTextView = findViewById<TextView>(R.id.newsCountTextView)
-        GlobalScope.launch(Dispatchers.Main) {
-            newsCountTextView.text = "Found ${headlines.size} News"
-        }
-    }
     private fun fetchRssHeadLines() : List<String>{
         val builder = factory.newDocumentBuilder()
         val xml = builder.parse("https://www.npr.org/rss/rss.php?id=1001")
