@@ -3,6 +3,7 @@ package learningconcurrencyinkotlin.rssreader
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
@@ -23,7 +24,9 @@ class MainActivity : AppCompatActivity() {
             val headlines = fetchRssHeadLines()
 
             val newsCountTextView = findViewById<TextView>(R.id.newsCountTextView)
-            newsCountTextView.text = "Found ${headlines.size} News"
+            GlobalScope.launch(Dispatchers.Main) {
+                newsCountTextView.text = "Found ${headlines.size} News"
+            }
         }
     }
 
