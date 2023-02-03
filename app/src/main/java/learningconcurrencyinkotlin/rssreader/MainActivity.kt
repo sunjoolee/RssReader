@@ -3,17 +3,14 @@ package learningconcurrencyinkotlin.rssreader
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.*
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.nio.file.NotDirectoryException
 import javax.xml.parsers.DocumentBuilderFactory
 
 class MainActivity : AppCompatActivity() {
-    private val dispatcher = newSingleThreadContext(name = "ServiceCall")
+    private val defDsp = newSingleThreadContext(name = "ServiceCall")
     private val factory = DocumentBuilderFactory.newInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,10 +18,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         asyncLoadNews()
-
     }
 
-    private fun asyncLoadNews(){
+    private fun asyncLoadNews(dispatcher:CoroutineDispatcher = defDsp) =
         GlobalScope.launch(dispatcher) {
             val headlines = fetchRssHeadLines()
 
@@ -33,7 +29,7 @@ class MainActivity : AppCompatActivity() {
                 newsCountTextView.text = "Found ${headlines.size} News"
             }
         }
-    }
+
 
     private fun fetchRssHeadLines() : List<String>{
         val builder = factory.newDocumentBuilder()
