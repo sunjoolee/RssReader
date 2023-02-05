@@ -16,8 +16,9 @@ class MainActivity : AppCompatActivity() {
 
     private val feeds = listOf(
         "https://www.npr.org/rss/rss.php?id=1001",
-        "http://rss.cnn.com/rss/cnn_topstories.rss"
+        "http://rss.cnn.com/rss/cnn_topstories.rss",
         // "http://feeds.foxnews.com/foxnews/politics?format=xml"
+        "htt:myNewsFeed"
     )
 
 
@@ -29,28 +30,39 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun asyncLoadNews() =
-        GlobalScope.launch{
+        GlobalScope.launch {
             val requests = mutableListOf<Deferred<List<String>>>()
 
             //데이터 가져오기
-            feeds.mapTo(requests){
+            feeds.mapTo(requests) {
                 asyncFetchHeadLines(it, dispatcher)
             }
             requests.forEach {
-                it.await()
+                it.join()
             }
 
             //데이터 구성하기
-            val headlines = requests.flatMap {
-                it.getCompleted()
-            }
+            val headlines = requests
+                .filter { !it.isCancelled }
+                .flatMap { it.getCompleted() }
+
+            val failed = requests
+                .filter { it.isCancelled }
+                .size
+            val obtained = requests.size - failed
 
             //UI에 표시하기
             val newsCountTextView = findViewById<TextView>(R.id.newsCountTextView)
+            val warningsTextView = findViewById<TextView>(R.id.warningsTextView)
+
             GlobalScope.launch(Dispatchers.Main) {
-                newsCountTextView.text = "Found ${headlines.size} News in ${requests.size} feeds"
+                newsCountTextView.text = "Found ${headlines.size} News in $obtained feeds"
+                if(failed > 0) {
+                    warningsTextView.text = "Failed to fetch $failed feeds"
+                }
             }
-    }
+        }
+
 
     private fun asyncFetchHeadLines(feed: String, dispatcher: CoroutineDispatcher) =
         GlobalScope.async(dispatcher){
