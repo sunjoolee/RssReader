@@ -54,14 +54,8 @@ class MainActivity : AppCompatActivity() {
             val obtained = requests.size - failed
 
             //UI에 표시하기
-            val newsCountTextView = findViewById<TextView>(R.id.newsCountTextView)
-            val warningsTextView = findViewById<TextView>(R.id.warningsTextView)
-
             GlobalScope.launch(Dispatchers.Main) {
-                newsCountTextView.text = "Found ${articles.size} News in $obtained feeds"
-                if(failed > 0) {
-                    warningsTextView.text = "Failed to fetch $failed feeds"
-                }
+                    //TODO: UI 갱신
             }
         }
 
