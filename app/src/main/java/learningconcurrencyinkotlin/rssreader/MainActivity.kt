@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
 import kotlinx.coroutines.*
+import learningconcurrencyinkotlin.rssreader.model.Article
 import learningconcurrencyinkotlin.rssreader.model.Feed
 import org.w3c.dom.Element
 import org.w3c.dom.Node
@@ -12,14 +13,14 @@ import java.nio.file.NotDirectoryException
 import javax.xml.parsers.DocumentBuilderFactory
 
 class MainActivity : AppCompatActivity() {
-    private val dispatcher =newFixedThreadPoolContext(2, "IO")
+    private val dispatcher = newFixedThreadPoolContext(2, "IO")
     private val factory = DocumentBuilderFactory.newInstance()
 
     private val feeds = listOf(
-        Feed("npr","https://www.npr.org/rss/rss.php?id=1001"),
+        Feed("npr", "https://www.npr.org/rss/rss.php?id=1001"),
         Feed("cnn", "http://rss.cnn.com/rss/cnn_topstories.rss"),
         // Feed("fox","http://feeds.foxnews.com/foxnews/politics?format=xml"),
-        Feed("inv","htt:myNewsFeed")
+        Feed("inv", "htt:myNewsFeed")
     )
 
 
@@ -32,18 +33,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun asyncLoadNews() =
         GlobalScope.launch {
-            val requests = mutableListOf<Deferred<List<String>>>()
+            val requests = mutableListOf<Deferred<List<Article>>>()
 
             //데이터 가져오기
             feeds.mapTo(requests) {
-                asyncFetchHeadLines(it, dispatcher)
+                asyncFetchArticles(it, dispatcher)
             }
             requests.forEach {
                 it.join()
             }
 
             //데이터 구성하기
-            val headlines = requests
+            val articles = requests
                 .filter { !it.isCancelled }
                 .flatMap { it.getCompleted() }
 
@@ -57,7 +58,7 @@ class MainActivity : AppCompatActivity() {
             val warningsTextView = findViewById<TextView>(R.id.warningsTextView)
 
             GlobalScope.launch(Dispatchers.Main) {
-                newsCountTextView.text = "Found ${headlines.size} News in $obtained feeds"
+                newsCountTextView.text = "Found ${articles.size} News in $obtained feeds"
                 if(failed > 0) {
                     warningsTextView.text = "Failed to fetch $failed feeds"
                 }
@@ -65,8 +66,8 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-    private fun asyncFetchHeadLines(feed: Feed, dispatcher: CoroutineDispatcher) =
-        GlobalScope.async(dispatcher){
+    private fun asyncFetchArticles(feed: Feed, dispatcher: CoroutineDispatcher) =
+        GlobalScope.async(dispatcher) {
             val builder = factory.newDocumentBuilder()
 
             val xml = builder.parse(feed.url)
@@ -75,8 +76,12 @@ class MainActivity : AppCompatActivity() {
             (0 until news.childNodes.length)
                 .map { news.childNodes.item(it) }
                 .filter { Node.ELEMENT_NODE == it.nodeType }
-                .map{it as Element}
+                .map { it as Element }
                 .filter { "item" == it.tagName }
-                .map { it.getElementsByTagName("title").item(0).textContent }
+                .map {
+                    val title = it.getElementsByTagName("title").item(0).textContent
+                    val summary = it.getElementsByTagName("description").item(0).textContent
+                    Article(feed.name, title, summary)
+                }
         }
 }
