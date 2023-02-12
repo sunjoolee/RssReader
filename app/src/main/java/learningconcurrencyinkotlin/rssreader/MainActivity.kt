@@ -2,6 +2,7 @@ package learningconcurrencyinkotlin.rssreader
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Contacts.Intents.UI
 import android.util.Log
 import android.view.View
 import android.widget.ProgressBar
@@ -10,14 +11,16 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.*
 import learningconcurrencyinkotlin.rssreader.adapter.ArticleAdapter
+import learningconcurrencyinkotlin.rssreader.adapter.ArticleLoader
 import learningconcurrencyinkotlin.rssreader.model.Article
 import learningconcurrencyinkotlin.rssreader.model.Feed
+import learningconcurrencyinkotlin.rssreader.producer.ArticleProducer
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.nio.file.NotDirectoryException
 import javax.xml.parsers.DocumentBuilderFactory
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ArticleLoader{
 
     private lateinit var articleRcyclerView: RecyclerView
     private lateinit var articleAdapter: ArticleAdapter
@@ -29,7 +32,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         articleRcyclerView = findViewById(R.id.articleRecyclerView)
-        articleAdapter = ArticleAdapter()
+        //어댑터의 articleLoader로 this 전달
+        articleAdapter = ArticleAdapter(this)
         articleLayoutManager = LinearLayoutManager(this)
 
         articleRcyclerView.apply{
@@ -37,38 +41,22 @@ class MainActivity : AppCompatActivity() {
             layoutManager = articleLayoutManager
         }
 
-        asyncLoadNews()
+        GlobalScope.launch {
+            loadMore()
+        }
     }
 
-    private fun asyncLoadNews() =
-        GlobalScope.launch {
-            val requests = mutableListOf<Deferred<List<Article>>>()
+    override suspend fun loadMore() {
+        val producer = ArticleProducer.producer
 
-            //데이터 가져오기
-            feeds.mapTo(requests) {
-                asyncFetchArticles(it, dispatcher)
-            }
-            requests.forEach {
-                it.join()
-            }
+        //프로듀서 열려있는지 검사 후 기사 더 요청
+        if(!producer.isClosedForReceive){
+            val articles = producer.receive()
 
-            //데이터 구성하기
-            val articles = requests
-                .filter { !it.isCancelled }
-                .flatMap { it.getCompleted() }
-
-            val failed = requests
-                .filter { it.isCancelled }
-                .size
-            val obtained = requests.size - failed
-
-            //UI에 표시하기
-            GlobalScope.launch(Dispatchers.Main) {
+            GlobalScope.launch(Dispatchers.Main){
                 findViewById<ProgressBar>(R.id.progressBar).visibility = View.GONE
                 articleAdapter.add(articles)
             }
         }
-
-
-
+    }
 }
