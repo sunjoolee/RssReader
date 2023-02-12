@@ -6,12 +6,20 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import learningconcurrencyinkotlin.rssreader.R
 import learningconcurrencyinkotlin.rssreader.model.Article
 
-class ArticleAdapter() : RecyclerView.Adapter<ArticleAdapter.ArticleViewHolder>(){
+interface ArticleLoader{
+    suspend fun loadMore()
+}
+class ArticleAdapter(
+    private val articleLoader: ArticleLoader
+) : RecyclerView.Adapter<ArticleAdapter.ArticleViewHolder>(){
 
-    val articles: MutableList<Article> = mutableListOf()
+    private val articles: MutableList<Article> = mutableListOf()
+    private var loading : Boolean = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ArticleViewHolder {
         val layout = LayoutInflater.from(parent.context)
@@ -24,11 +32,25 @@ class ArticleAdapter() : RecyclerView.Adapter<ArticleAdapter.ArticleViewHolder>(
         return ArticleViewHolder(layout, feed, title, summary)
     }
 
-    override fun getItemCount() = articles.size
+    override fun getItemCount() = when(articles){
+            null -> 0
+            else -> articles.size
+        }
+
 
 
     override fun onBindViewHolder(holder: ArticleViewHolder, position: Int) {
         val article = articles[position]
+
+        //request more articles when needed
+        if(!loading && (position >= (articles.size - 2))){
+            loading = true
+
+            GlobalScope.launch{
+                articleLoader.loadMore()
+                loading = false
+            }
+        }
 
         holder.feed.text = article.feed
         holder.title.text = article.title
