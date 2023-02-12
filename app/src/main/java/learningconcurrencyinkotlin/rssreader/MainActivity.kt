@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
 import kotlinx.coroutines.*
+import learningconcurrencyinkotlin.rssreader.model.Feed
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.nio.file.NotDirectoryException
@@ -15,10 +16,10 @@ class MainActivity : AppCompatActivity() {
     private val factory = DocumentBuilderFactory.newInstance()
 
     private val feeds = listOf(
-        "https://www.npr.org/rss/rss.php?id=1001",
-        "http://rss.cnn.com/rss/cnn_topstories.rss",
-        // "http://feeds.foxnews.com/foxnews/politics?format=xml"
-        "htt:myNewsFeed"
+        Feed("npr","https://www.npr.org/rss/rss.php?id=1001"),
+        Feed("cnn", "http://rss.cnn.com/rss/cnn_topstories.rss"),
+        // Feed("fox","http://feeds.foxnews.com/foxnews/politics?format=xml"),
+        Feed("inv","htt:myNewsFeed")
     )
 
 
@@ -64,11 +65,11 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-    private fun asyncFetchHeadLines(feed: String, dispatcher: CoroutineDispatcher) =
+    private fun asyncFetchHeadLines(feed: Feed, dispatcher: CoroutineDispatcher) =
         GlobalScope.async(dispatcher){
             val builder = factory.newDocumentBuilder()
-            Log.d("asyncFetchHeadLines", feed)
-            val xml = builder.parse(feed)
+
+            val xml = builder.parse(feed.url)
             val news = xml.getElementsByTagName("channel").item(0)
 
             (0 until news.childNodes.length)
