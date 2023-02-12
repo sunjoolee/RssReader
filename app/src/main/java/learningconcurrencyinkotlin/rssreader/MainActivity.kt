@@ -3,8 +3,13 @@ package learningconcurrencyinkotlin.rssreader
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.*
+import learningconcurrencyinkotlin.rssreader.adapter.ArticleAdapter
 import learningconcurrencyinkotlin.rssreader.model.Article
 import learningconcurrencyinkotlin.rssreader.model.Feed
 import org.w3c.dom.Element
@@ -15,6 +20,10 @@ import javax.xml.parsers.DocumentBuilderFactory
 class MainActivity : AppCompatActivity() {
     private val dispatcher = newFixedThreadPoolContext(2, "IO")
     private val factory = DocumentBuilderFactory.newInstance()
+
+    private lateinit var articleRcyclerView: RecyclerView
+    private lateinit var articleAdapter: ArticleAdapter
+    private lateinit var articleLayoutManager: RecyclerView.LayoutManager
 
     private val feeds = listOf(
         Feed("npr", "https://www.npr.org/rss/rss.php?id=1001"),
@@ -27,6 +36,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        articleRcyclerView = findViewById(R.id.articleRecyclerView)
+        articleAdapter = ArticleAdapter()
+        articleLayoutManager = LinearLayoutManager(this)
+
+        articleRcyclerView.apply{
+            adapter = articleAdapter
+            layoutManager = articleLayoutManager
+        }
 
         asyncLoadNews()
     }
@@ -55,7 +73,8 @@ class MainActivity : AppCompatActivity() {
 
             //UI에 표시하기
             GlobalScope.launch(Dispatchers.Main) {
-                    //TODO: UI 갱신
+                findViewById<ProgressBar>(R.id.progressBar).visibility = View.GONE
+                articleAdapter.add(articles)
             }
         }
 
