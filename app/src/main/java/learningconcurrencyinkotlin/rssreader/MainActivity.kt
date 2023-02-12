@@ -83,6 +83,8 @@ class MainActivity : AppCompatActivity() {
         GlobalScope.async(dispatcher) {
             val builder = factory.newDocumentBuilder()
 
+            delay(1000)
+
             val xml = builder.parse(feed.url)
             val news = xml.getElementsByTagName("channel").item(0)
 
@@ -93,7 +95,12 @@ class MainActivity : AppCompatActivity() {
                 .filter { "item" == it.tagName }
                 .map {
                     val title = it.getElementsByTagName("title").item(0).textContent
-                    val summary = it.getElementsByTagName("description").item(0).textContent
+
+                    var summary = it.getElementsByTagName("description").item(0).textContent
+                    if(!summary.startsWith("<div") && summary.contains("<div")){
+                        summary = summary.substring(0, summary.indexOf("<div"))
+                    }
+
                     Article(feed.name, title, summary)
                 }
         }
