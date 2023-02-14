@@ -10,15 +10,15 @@ object ResultsCounter {
     private val counterContext = newSingleThreadContext("counter")
     private var counter = 0
 
-    private val notifications = Channel<Int>(Channel.CONFLATED)
+    private val notificationChannel = Channel<Int>(Channel.CONFLATED)
 
     //UI에 채널을 노출하는 함수
-    fun getNotificationChannel() : ReceiveChannel<Int> = notifications
+    fun getNotificationChannel() : ReceiveChannel<Int> = notificationChannel
 
     private val counterActor = GlobalScope.actor<Void?>(counterContext){
         for (msg in channel){
             counter++
-            notifications.send(counter)
+            notificationChannel.send(counter)
         }
     }
 

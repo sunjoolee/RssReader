@@ -4,14 +4,17 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import learningconcurrencyinkotlin.rssreader.adapter.ArticleAdapter
 import learningconcurrencyinkotlin.rssreader.model.Article
+import learningconcurrencyinkotlin.rssreader.search.ResultsCounter
 import learningconcurrencyinkotlin.rssreader.search.Searcher
 
 class SearchActivity : AppCompatActivity(){
@@ -40,6 +43,10 @@ class SearchActivity : AppCompatActivity(){
                 search()
             }
         }
+
+        GlobalScope.launch {
+            updateCounter()
+        }
     }
 
     private suspend fun search(){
@@ -51,6 +58,19 @@ class SearchActivity : AppCompatActivity(){
 
             GlobalScope.launch(Dispatchers.Main){
                 articleAdapter.add(article)
+            }
+        }
+    }
+
+    suspend fun updateCounter(){
+        val notificationChannel = ResultsCounter.getNotificationChannel()
+        val resultsTextView = findViewById<TextView>(R.id.resultsTextView)
+
+        while (!notificationChannel.isClosedForReceive){
+            val newAmount = notificationChannel.receive()
+
+            withContext(Dispatchers.Main){
+                resultsTextView.text = "$newAmount results found"
             }
         }
     }
