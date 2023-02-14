@@ -74,6 +74,8 @@ class Searcher {
 
                         val article = Article(feed.name, title, summary)
                         channel.send(article)
+                        //카운터를 갖는 싱글톤 증가
+                        ResultsCounter.increment()
                     }
                 }
     }
