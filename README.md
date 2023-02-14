@@ -27,7 +27,7 @@
 - 📝[[코틀린 동시성] CH6 채널 - 통신을 통한 메모리 공유(실습)
 ](https://velog.io/@sunjoo9912/%EC%BD%94%ED%8B%80%EB%A6%B0-%EB%8F%99%EC%8B%9C%EC%84%B1-CH6-%EC%B1%84%EB%84%90-%ED%86%B5%EC%8B%A0%EC%9D%84-%ED%86%B5%ED%95%9C-%EB%A9%94%EB%AA%A8%EB%A6%AC-%EA%B3%B5%EC%9C%A0%EC%8B%A4%EC%8A%B5)
 
-### CH7 스레드 한정, 액터, 그리고 뮤텍스
+### CH7 스레드 한정, 액터, 그리고 뮤텍스✅
 
-- 2023.02.14~ing
+- 2023.02.14~2023.02.14
 - 📝[[코틀린 동시성] CH7 스레드 한정, 액터, 그리고 뮤텍스(실습)](https://velog.io/@sunjoo9912/%EC%BD%94%ED%8B%80%EB%A6%B0-%EB%8F%99%EC%8B%9C%EC%84%B1-CH7-%EC%8A%A4%EB%A0%88%EB%93%9C-%ED%95%9C%EC%A0%95-%EC%95%A1%ED%84%B0-%EA%B7%B8%EB%A6%AC%EA%B3%A0-%EB%AE%A4%ED%85%8D%EC%8A%A4%EC%8B%A4%EC%8A%B5)
