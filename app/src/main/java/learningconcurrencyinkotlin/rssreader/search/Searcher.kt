@@ -1,5 +1,6 @@
 package learningconcurrencyinkotlin.rssreader.search
 
+import android.util.Log
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -51,9 +52,18 @@ class Searcher {
                 .map { it as Element }
                 .filter { "item" == it.tagName }
                 .forEach {
-                    val title = it.getElementsByTagName("title").item(0).textContent
+                    if(it == null){
+                        Log.d("Searcher", "No search result found")
+                        return@forEach
+                    }
 
-                    var summary = it.getElementsByTagName("description").item(0).textContent
+                    val title = it.getElementsByTagName("title").item(0)?.textContent
+                    var summary = it.getElementsByTagName("description").item(0)?.textContent
+
+                    if((title == null) || (summary == null)){
+                        Log.d("Searcher", "No title/summary found")
+                        return@forEach
+                    }
 
                     //모든 컨텐츠를 매핑하는 대신 필터링 한 기사를 채널을 통해 전송
                     if(title.contains(query) || summary.contains(query)) {

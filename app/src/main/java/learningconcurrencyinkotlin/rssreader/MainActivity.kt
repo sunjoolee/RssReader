@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity(), ArticleLoader{
 
         articleRcyclerView = findViewById(R.id.articleRecyclerView)
         //어댑터의 articleLoader로 this 전달
-        articleAdapter = ArticleAdapter(this)
+        articleAdapter = ArticleAdapter()
         articleLayoutManager = LinearLayoutManager(this)
 
         articleRcyclerView.apply{
