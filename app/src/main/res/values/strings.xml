@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">RssReader</string>
+    <string name="_0_results_found">0 results found</string>
 </resources>
