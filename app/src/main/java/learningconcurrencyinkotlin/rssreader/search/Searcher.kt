@@ -1,8 +1,10 @@
 package learningconcurrencyinkotlin.rssreader.search
 
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 import learningconcurrencyinkotlin.rssreader.model.Article
 import learningconcurrencyinkotlin.rssreader.model.Feed
@@ -23,7 +25,14 @@ class Searcher {
 
     //쿼리를 받아서 ReceiveChannel<Article>을 반환하는 공개 함수
     fun search(query: String): ReceiveChannel<Article> {
-        return Channel(150)
+        val channel = Channel<Article>(150)
+
+        feeds.forEach { feed->
+            GlobalScope.launch(dispatcher){
+                search(feed, channel, query)
+            }
+        }
+        return channel
     }
 
     //피드, 쿼리, 채널을 갖고 실제 검색을 하는 비공개 함수
