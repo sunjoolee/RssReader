@@ -18,6 +18,7 @@ object ResultsCounter {
     private val counterActor = GlobalScope.actor<Void?>(counterContext){
         for (msg in channel){
             counter++
+            notifications.send(counter)
         }
     }
 
