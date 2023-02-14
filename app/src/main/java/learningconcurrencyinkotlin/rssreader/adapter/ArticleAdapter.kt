@@ -14,12 +14,9 @@ import learningconcurrencyinkotlin.rssreader.model.Article
 interface ArticleLoader{
     suspend fun loadMore()
 }
-class ArticleAdapter(
-    private val articleLoader: ArticleLoader
-) : RecyclerView.Adapter<ArticleAdapter.ArticleViewHolder>(){
+class ArticleAdapter() : RecyclerView.Adapter<ArticleAdapter.ArticleViewHolder>(){
 
     private val articles: MutableList<Article> = mutableListOf()
-    private var loading : Boolean = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ArticleViewHolder {
         val layout = LayoutInflater.from(parent.context)
@@ -42,16 +39,6 @@ class ArticleAdapter(
     override fun onBindViewHolder(holder: ArticleViewHolder, position: Int) {
         val article = articles[position]
 
-        //request more articles when needed
-        if(!loading && (position >= (articles.size - 2))){
-            loading = true
-
-            GlobalScope.launch{
-                articleLoader.loadMore()
-                loading = false
-            }
-        }
-
         holder.feed.text = article.feed
         holder.title.text = article.title
         holder.summary.text = article.summary
@@ -62,6 +49,15 @@ class ArticleAdapter(
         notifyDataSetChanged()
     }
 
+    fun add(moreArticle: Article){
+        this.articles.add(moreArticle)
+        notifyDataSetChanged()
+    }
+
+    fun clear(){
+        this.articles.clear()
+        notifyDataSetChanged()
+    }
     class ArticleViewHolder(
         val layout : LinearLayout,
         val feed : TextView,
